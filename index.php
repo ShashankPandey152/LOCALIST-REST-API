@@ -2,6 +2,7 @@
 
     $link = mysqli_connect("shareddb-h.hosting.stackcp.net", "prodData-3333764a", "password98@", "prodData-3333764a");
 
+    //Signup 
     if($_GET['signup'] == 1) {
         
         $status = -1;
@@ -46,7 +47,8 @@ This is a system generated mail. Do not reply.
         echo json_encode(Array("status" => $status));        
         
     }
-
+    
+    //Login
     if($_GET['login'] == 1) {
         
         $status = -1;
@@ -66,6 +68,49 @@ This is a system generated mail. Do not reply.
         }
         
         echo json_encode(Array("status" => $status));
+        
+    }
+
+    //Forgot password
+    if($_GET['forgot'] == 1) {
+        
+        $status = -1;
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        if(mysqli_num_rows(mysqli_query($link, $query)) == 0) {
+            $status = 0;
+        } else {
+            $to = $_GET['email'];
+            $subject = "Email Verification";
+            $message = '
+Thanks for signing up!
+
+Please click this link to activate your account:
+http://localist-com.stackstaging.com/verify.php?email='.$_GET['email'].'
+
+This is a system generated mail. Do not reply. 
+            ';
+            $headers = 'From:no-reply@localist.com' . "\r\n"; 
+            if(mail($to, $subject, $message, $headers)) {
+                $status = 1;    
+            }
+        }
+        
+        echo json_encode(Array("status" => $status));
+        
+    }
+
+    //Check if email address is verified
+    if($_GET['status'] == 1) {
+        
+        $status = -1;
+        
+        $query = "SELECT `status` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        echo json_encode(Array("status" => $row['status']));
         
     }
 
