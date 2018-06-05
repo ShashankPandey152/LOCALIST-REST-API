@@ -82,12 +82,11 @@ This is a system generated mail. Do not reply.
             $status = 0;
         } else {
             $to = $_GET['email'];
-            $subject = "Email Verification";
+            $subject = "Password reset";
             $message = '
-Thanks for signing up!
 
-Please click this link to activate your account:
-http://localist-com.stackstaging.com/verify.php?email='.$_GET['email'].'
+Please click this link to reset your password:
+http://localist-com.stackstaging.com/forgot.php?email='.$_GET['email'].'
 
 This is a system generated mail. Do not reply. 
             ';
@@ -111,6 +110,51 @@ This is a system generated mail. Do not reply.
         $row = mysqli_fetch_array(mysqli_query($link, $query));
         
         echo json_encode(Array("status" => $row['status']));
+        
+    }
+
+    //Add a new location
+    if($_GET['location'] == 1) { 
+        
+        $status = -1;
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        $query = "INSERT INTO `location`(`cid`, `name`, `latitude`, `longitude`) VALUES('".$row['id']."', '".mysqli_real_escape_string($link, $_GET['name'])."', '".mysqli_real_escape_string($link, $_GET['latitude'])."', '".mysqli_real_escape_string($link, $_GET['longitude'])."')";
+        
+        if(mysqli_query($link, $query)) {
+            $status = 1;
+        }
+        
+        echo json_encode(Array("status" => $status));
+        
+    } else if($_GET['location'] == 2) { //Get list of all the location
+        
+        $name = Array();
+        $latitude = Array();
+        $longitude = Array();
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        $query = "SELECT * FROM `location` WHERE `cid` = '".$row['id']."'";
+        
+        if($result = mysqli_query($link, $query)) {
+            
+            while($row = mysqli_fetch_array($result)) {
+                
+                array_push($name, $row['name']);
+                array_push($latitude, $row['latitude']);
+                array_push($longitude, $row['longitude']);
+                
+            }
+            
+        }
+        
+        echo json_encode(Array("name" => $name, "latitude" => $latitude, "longitude" => $longitude));
         
     }
 
