@@ -132,6 +132,7 @@ This is a system generated mail. Do not reply.
         
     } else if($_GET['location'] == 2) { //Get list of all the location
         
+        $id = Array();
         $name = Array();
         $latitude = Array();
         $longitude = Array();
@@ -146,6 +147,7 @@ This is a system generated mail. Do not reply.
             
             while($row = mysqli_fetch_array($result)) {
                 
+                array_push($id, $row['id']);
                 array_push($name, $row['name']);
                 array_push($latitude, $row['latitude']);
                 array_push($longitude, $row['longitude']);
@@ -154,7 +156,74 @@ This is a system generated mail. Do not reply.
             
         }
         
-        echo json_encode(Array("name" => $name, "latitude" => $latitude, "longitude" => $longitude));
+        echo json_encode(Array("id" => $id, "name" => $name, "latitude" => $latitude, "longitude" => $longitude));
+        
+    }
+
+    //Edit name of location
+    if($_GET['edit'] == 1) {
+        
+        $status = -1;
+        
+        $query = "UPDATE `location` SET `name` = '".mysqli_real_escape_string($link, $_GET['name'])."' WHERE `id` = '".mysqli_real_escape_string($link, $_GET['id'])."'";
+        
+        if(mysqli_query($link, $query)) {
+            $status = 1;
+        }
+        
+        echo json_encode(Array("status" => $status));
+        
+    } else if($_GET['edit'] == 2) { //Delete a location
+        
+        $status = -1;
+        
+        $query = "DELETE FROM `location` WHERE `id` = '".mysqli_real_escape_string($link, $_GET['id'])."'";
+        
+        if(mysqli_query($link, $query)) {
+            $status = 1;
+        }
+        
+        echo json_encode(Array("status" => $status));
+        
+    }
+
+    if($_GET['addItem'] == 1) {
+        
+        $status = -1;
+        
+        $item = mysqli_real_escape_string($link, $_GET['item']) . "+++";
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        $query = "SELECT `id` FROM `items` WHERE `cid` = '".$row['id']."' AND `store` = '".mysqli_real_escape_string($link, $_GET['store'])."'";
+        
+        if(mysqli_num_rows(mysqli_query($link, $query)) == 0) {
+            
+            $query = "INSERT INTO `items`(`cid`, `store`, `articles`) VALUES('".$row['id']."', '".mysqli_real_escape_string($link, $_GET['store'])."', '".$item."')";
+            
+            if(mysqli_query($link, $query)) {
+                $status = 1;
+            }
+            
+        } else {
+            
+            $query = "SELECT `articles` FROM `items` WHERE `cid` = '".$row['id']."' AND `store` = '".mysqli_real_escape_string($link, $_GET['store'])."'";
+            
+            $row1 = mysqli_fetch_array(mysqli_query($link, $query));
+            
+            $item = $row1['articles'].$item;
+            
+            $query = "UPDATE `items` SET `articles` = '".$item."' WHERE `cid` = '".$row['id']."' AND `store` = '".mysqli_real_escape_string($link, $_GET['store'])."'";
+            
+            if(mysqli_query($link, $query)) {
+                $status = 1;
+            }
+            
+        }
+        
+        echo json_encode(Array("status" => $status));
         
     }
 
