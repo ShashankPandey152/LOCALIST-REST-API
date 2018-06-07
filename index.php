@@ -227,4 +227,69 @@ This is a system generated mail. Do not reply.
         
     }
 
+    if($_GET['getChecklist'] == 1) {
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        $query = "SELECT * FROM `location` WHERE `cid` = '".$row['id']."'";
+        
+        $id2store = Array();
+        $store2location = Array();
+        
+        if($result = mysqli_query($link, $query)) {
+            
+            while($row1 = mysqli_fetch_array($result)) {
+                
+                $id2store[$row1['id']] = $row1['name'];
+                $store2location[$row1['name']] = Array($row1['latitude'], $row1['longitude']);
+                
+            }
+            
+        }
+        
+        $query = "SELECT * FROM `items` WHERE `cid` = '".$row['id']."'";
+        
+        $items = Array();
+        
+        if($result = mysqli_query($link, $query)) {
+            
+            $article = Array();
+            
+            while($row2 = mysqli_fetch_array($result)) {
+                
+                $article = array_filter(explode("+++", $row2['articles']));
+                $items[$id2store[$row2['store']]] = $article;
+                
+            }
+            
+        }
+        
+        if(sizeof($items) == 0) {
+            $items['trash'] = Array("trash");
+        }
+        
+        echo json_encode(Array("items" => $items, "locations" => $store2location));
+        
+    } 
+
+    if($_GET['deleteChecklist'] == 1) {
+        
+        $status = -1;
+        
+        $query = "SELECT `id` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
+        
+        $row = mysqli_fetch_array(mysqli_query($link, $query));
+        
+        $query = "DELETE FROM `items` WHERE `cid` = '".$row['id']."'";
+        
+        if(mysqli_query($link, $query)) {
+            $status = 1;
+        }
+        
+        echo json_encode(Array("status" => $status));
+        
+    }
+
 ?>
