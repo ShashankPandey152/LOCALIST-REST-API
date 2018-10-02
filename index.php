@@ -48,6 +48,28 @@ This is a system generated mail. Do not reply.
 
     }
 
+    //Resend verification email
+    if($_GET['resend'] == 1) {
+        $status = -1;
+
+        $to = $_GET['email'];
+        $subject = "Email Verification";
+        $message = '
+
+Please click this link to activate your account:
+http://localist-com.stackstaging.com/verify.php?email='.$_GET['email'].'
+
+This is a system generated mail. Do not reply.
+        ';
+        $headers = 'From:no-reply@localist.com' . "\r\n";
+        if(mail($to, $subject, $message, $headers)) {
+            $status = 1;
+        }
+
+        echo json_encode(Array("status" => $status));
+
+    }
+
     //Login
     if($_GET['login'] == 1) {
 
@@ -60,7 +82,9 @@ This is a system generated mail. Do not reply.
         } else {
             $row = mysqli_fetch_array(mysqli_query($link, $query));
 
-            if(hash('sha512', $_GET['password']) == $row['password']) {
+            if($row['status'] == 0) {
+                $status = 3;
+            } else if(hash('sha512', $_GET['password']) == $row['password']) {
                 $status = 1;
             } else {
                 $status = 2;
@@ -97,19 +121,6 @@ This is a system generated mail. Do not reply.
         }
 
         echo json_encode(Array("status" => $status));
-
-    }
-
-    //Check if email address is verified
-    if($_GET['status'] == 1) {
-
-        $status = -1;
-
-        $query = "SELECT `status` FROM `users` WHERE `email` = '".mysqli_real_escape_string($link, $_GET['email'])."'";
-
-        $row = mysqli_fetch_array(mysqli_query($link, $query));
-
-        echo json_encode(Array("status" => $row['status']));
 
     }
 
@@ -260,7 +271,7 @@ This is a system generated mail. Do not reply.
             while($row2 = mysqli_fetch_array($result)) {
 
                 $article = array_filter(explode("+++", $row2['articles']));
-                $items[$id2store[$row2['store']]] = $article;
+                $items[$id2store[(int)$row2['store']]] = $article;
 
             }
 
