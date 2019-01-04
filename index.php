@@ -1,6 +1,6 @@
 <?php
 
-    $link = mysqli_connect("localhost","id7340194_root","password@","id7340194_prod");
+    $link = mysqli_connect("******","******","******","******");
 
     //Signup
     if($_GET['signup'] == 1) {
